@@ -1,0 +1,7 @@
+Usage:
+
+mkdir -p ${OUTPUT_DIR}/${SAMPLE}
+cd ${OUTPUT_DIR}/${SAMPLE}
+. ${MAKEDIR}/config.sh
+find ${SEQUENCE_DIR}/${SAMPLE}/Analysis_Results -name "*.bax.h5" -exec readlink -f {} > input.start.fofn
+make -f ${MAKEDIR}/Makefile
