@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<smrtpipeSettings>
+    <protocol version="2.3.0" id="RS_PreAssembler.1" editable="false">
+        <param name="name" label="Protocol Name">
+            <value>RS_PreAssembler</value>
+            <input type="text"/>
+            <rule required="true"/>
+        </param>
+        <param name="description">
+            <value>Build a set of highly accurate long reads for use in de novo assembly.</value>
+            <textarea></textarea>
+        </param>
+        <param name="version" hidden="true">
+            <value>1</value>
+            <input type="text"/>
+            <rule type="digits" required="true" min="1.0"/>
+        </param>
+        <param name="state" hidden="true">
+            <value>active</value>
+            <input value="active" type="radio"/>
+            <input value="inactive" type="radio"/>
+        </param>
+        <param name="control" hidden="true">
+            <value>/net/eichler/vol24/projects/sequencing/pacbio/nobackups/smrt_userdata/references/2kb_control</value>
+        </param>
+        <param name="fetch" hidden="true">
+            <value>common/protocols/preprocessing/Fetch.1.xml</value>
+        </param>
+        <param name="filtering">
+            <value>common/protocols/filtering/PreAssemblerSFilter.1.xml</value>
+            <select multiple="true">
+                <import extension="xml" contentType="text/directory">common/protocols/filtering</import>
+            </select>
+        </param>
+        <param name="spikeinControl" hidden="true">
+            <value>common/protocols/control/SControl.1.xml</value>
+        </param>
+        <param name="assembly">
+            <value>common/protocols/assembly/PreAssembler.2.xml</value>
+            <select multiple="true">
+                <import extension="xml" contentType="text/directory">common/protocols/assembly</import>
+            </select>
+        </param>
+    </protocol>
+    <moduleStage name="fetch" editable="true">
+        <module label="Fetch v1" id="P_Fetch" editableInJob="true">
+            <description>Sets up inputs</description>
+        </module>
+    </moduleStage>
+    <moduleStage name="filtering" editable="true">
+        <module label="PreAssembler Filter v1" id="P_Filter" editableInJob="true">
+            <description>Filter reads for use in the pre-assembly step of HGAP, the hierarchical genome assembly process.</description>
+            <param name="minSubReadLength" label="Minimum Subread Length">
+                <value>500</value>
+                <title>Subreads shorter than this value (in base pairs) are filtered out and excluded from analysis.</title>
+                <input type="text" size="3"/>
+                <rule type="number" min="0.0" message="Value must be a positive integer"/>
+            </param>
+            <param name="readScore" label="Minimum Polymerase Read Quality">
+                <value>0.80</value>
+                <title>Polymerase reads with lower quality than this value are filtered out and excluded from analysis.</title>
+                <input type="text" size="3"/>
+                <rule type="number" min="0.0" message="Value must be between 0 and 1" max="1.0"/>
+            </param>
+            <param name="minLength" label="Minimum Polymerase Read Length">
+                <value>100</value>
+                <title>Polymerase reads shorter than this value (in base pairs) are filtered out and excluded from analysis.</title>
+                <input type="text" size="3"/>
+                <rule type="number" min="0.0" message="Value must be a positive integer"/>
+            </param>
+        </module>
+        <module label="PreAssemblerSFilter Reports v1" id="P_FilterReports" editableInJob="false"/>
+    </moduleStage>
+    <moduleStage name="assembly" editable="true">
+        <module label="PreAssembler v2" id="P_PreAssemblerDagcon" editableInJob="true">
+            <title>Using DAG-based consensus algorithm, pre-assemble long reads as the first step of the Hierarchical Genome Assembly process (HGAP). Version 2 is a stepping stone for scaling to much larger genomes.</title>
+            <param name="computeLengthCutoff" label="Compute Minimum Seed Read Length" editable="true">
+                <value>true</value>
+                <title>Specify whether or not to compute the minimum seed read length that results in at least 30X target genome coverage, by the longest subreads. This is based on the genome size you specified.</title>
+                <input type="checkbox"/>
+            </param>
+            <param name="minLongReadLength" label="Minimum Seed Read Length">
+                <value>6000</value>
+                <title>The minimum length of reads (in base pairs) to use as seeds for pre-assembly.</title>
+                <input type="text"/>
+                <rule type="digits" required="true" min="1.0" message="Value must be an integer between 1 and 100000" max="100000.0"/>
+            </param>
+            <param name="targetChunks" label="Number of Seed Read Chunks">
+                <value>6</value>
+                <title>The number of pieces to split the data files into while running PreAssembler.</title>
+            </param>
+            <param name="splitBestn" label="Alignment Candidates Per Chunk">
+                <value>10</value>
+                <title>The number of alignments to consider for each read for a particular chunk.</title>
+            </param>
+            <param name="totalBestn" label="Total Alignment Candidates">
+                <value>24</value>
+                <title>The number of potential alignments BLASR should consider across all chunks for a particular read.</title>
+            </param>
+            <param name="blasrOpts" label="BLASR Options (Advanced)">
+                <value> -noSplitSubreads -minReadLength 200 -maxScore -1000 -maxLCPLength 16 </value>
+                <title>-bestn and -nCandidates values should be roughly equal to the expected seed read coverage.</title>
+                <input type="text"/>
+            </param>
+            <param name="minCorCov" hidden="true">
+                <value>4</value>
+            </param>
+        </module>
+        <module label="Assembly Info" id="P_CeleraAssembler" editableInJob="false">
+            <param name="genomeSize">
+                <value>200000</value>
+                <title>The expected genome size after the final assembly.</title>
+            </param>
+            <param name="libraryName" hidden="true">
+                <value>pacbio</value>
+            </param>
+            <param name="genFrgFile" hidden="true">
+                <value>False</value>
+            </param>
+            <param name="writeRunCASpec" hidden="true">
+                <value>False</value>
+            </param>
+            <param name="runCA" hidden="true">
+                <value>False</value>
+            </param>
+            <param name="runCaHgap" hidden="true">
+                <value>False</value>
+            </param>
+            <param name="castats" hidden="true">
+                <value>False</value>
+            </param>
+        </module>
+    </moduleStage>
+    <fileName>RS_PreAssembler.2.xml</fileName>
+</smrtpipeSettings>
